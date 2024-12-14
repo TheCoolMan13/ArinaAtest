@@ -1,11 +1,8 @@
-// App.js
-import React from 'react-native';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import MainPage from './app/MainPage';
 import InstrumentSeeMore from './app/InstrumentSeeMore';
-
-
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -14,7 +11,7 @@ const App = () => {
             <Stack.Navigator initialRouteName="Main">
                 <Stack.Screen name="Main" component={MainPage} options={{ title: 'Medical Instruments' }} />
                 <Stack.Screen name="InstrumentSeeMore" component={InstrumentSeeMore} options={{ title: 'Instrument Details' }} />
-             </Stack.Navigator>
+            </Stack.Navigator>
         </NavigationContainer>
     );
 };

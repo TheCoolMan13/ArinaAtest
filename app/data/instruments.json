@@ -1,0 +1,18 @@
+[
+    {
+        "id": "1",
+        "title": "Stethoscope",
+        "uses": "Listening to body sounds like heartbeats and breathing.",
+        "longDescription": "A stethoscope is an acoustic medical device for auscultation, or listening to the internal sounds of an animal or human body. It is used for heart, lung, and other body sounds.",
+        "price": "$50",
+        "imageSource": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Stethoscope_2.jpg"
+    },
+    {
+        "id": "2",
+        "title": "Syringe",
+        "uses": "Used to inject fluids into the body.",
+        "longDescription": "A syringe is a simple pump consisting of a plunger that fits tightly in a cylindrical tube. It is used to inject or withdraw fluids from the body.",
+        "price": "$5",
+        "imageSource": "https://upload.wikimedia.org/wikipedia/commons/6/68/Syringe_with_Needle.jpg"
+    }
+]

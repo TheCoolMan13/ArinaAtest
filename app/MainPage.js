@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Modal, Pressable, TextInput, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';  // If using Expo
+import {
+    View, Text, StyleSheet, FlatList, ActivityIndicator,
+    TouchableOpacity, Modal, TextInput, Alert
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Optional, not currently used
+import { useNavigation } from '@react-navigation/native'; // ✅ Import navigation hook
 import InstrumentComponent from './components/InstrumentComponent';
 
 const MainPage = () => {
+    const navigation = useNavigation(); // ✅ Use navigation
+
     const [instruments, setInstruments] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedInstrument, setSelectedInstrument] = useState(null);  // Track selected instrument for modal
+    const [selectedInstrument, setSelectedInstrument] = useState(null);
     const [newInstrument, setNewInstrument] = useState({
         title: '',
         description: '',
@@ -14,53 +20,51 @@ const MainPage = () => {
         uses: '',
         price: '',
         longDescription: ''
-    });  // New instrument data
-    const [newInstrumentVisible, setNewInstrumentVisible] = useState(false);  // New state to control the "Add Instrument" modal visibility
+    });
+    const [newInstrumentVisible, setNewInstrumentVisible] = useState(false);
 
     useEffect(() => {
-        // Fetch instruments data from the backend API
         fetchInstruments();
     }, []);
 
-    // Function to fetch the instruments from the backend
     const fetchInstruments = async () => {
         try {
-            const response = await fetch('http://localhost:3000/instruments'); // Replace with your backend URL
+            const response = await fetch('http://localhost:3000/instruments');
             if (response.ok) {
                 const data = await response.json();
-                setInstruments(data);  // Set fetched data
+                setInstruments(data);
             } else {
                 console.error('Failed to fetch data:', response.statusText);
             }
         } catch (error) {
             console.error('Error fetching instruments:', error);
         } finally {
-            setLoading(false);  // Stop loading after fetch attempt
+            setLoading(false);
         }
     };
 
     const openModal = (instrument) => {
         setSelectedInstrument(instrument);
-        //setModalVisible(true);
-    };
-    // Function to close the modal
-    const closeModal = () => {
-        setSelectedInstrument(null);  // Clear the selected instrument to close the modal
     };
 
-    // Function to handle adding a new instrument
+    const closeModal = () => {
+        setSelectedInstrument(null);
+    };
+
+    const handleSeeMoreInformation = () => {
+        if (!selectedInstrument) return;
+        navigation.navigate('InstrumentSeeMore', { instrument: selectedInstrument }); // ✅ Navigate correctly
+    };
+
     const handleAddInstrument = async () => {
         try {
             const response = await fetch('http://localhost:3000/instruments', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newInstrument),
             });
             if (response.ok) {
                 Alert.alert('Success', 'Instrument added successfully');
-                // Refresh the instrument list after adding
                 fetchInstruments();
                 setNewInstrument({
                     title: '',
@@ -70,7 +74,7 @@ const MainPage = () => {
                     price: '',
                     longDescription: ''
                 });
-                setNewInstrumentVisible(false); // Close the modal after adding
+                setNewInstrumentVisible(false);
             } else {
                 Alert.alert('Error', 'Failed to add instrument');
             }
@@ -80,7 +84,6 @@ const MainPage = () => {
         }
     };
 
-    // Function to handle deleting an instrument
     const handleDeleteInstrument = async (id) => {
         try {
             const response = await fetch(`http://localhost:3000/instruments/${id}`, {
@@ -88,7 +91,6 @@ const MainPage = () => {
             });
             if (response.ok) {
                 Alert.alert('Success', 'Instrument deleted successfully');
-                // Refresh the instrument list after deleting
                 fetchInstruments();
             } else {
                 Alert.alert('Error', 'Failed to delete instrument');
@@ -99,7 +101,6 @@ const MainPage = () => {
         }
     };
 
-    // If data is still being fetched, show a loading spinner
     if (loading) {
         return (
             <View style={styles.loaderContainer}>
@@ -108,12 +109,10 @@ const MainPage = () => {
         );
     }
 
-    // Render the instruments using FlatList
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Medical Instruments</Text>
 
-            {/* If there are no instruments, show this message */}
             {instruments.length === 0 ? (
                 <Text style={styles.emptyMessage}>No instruments available</Text>
             ) : (
@@ -132,12 +131,10 @@ const MainPage = () => {
                 />
             )}
 
-            {/* Add Button */}
             <TouchableOpacity style={styles.addButton} onPress={() => setNewInstrumentVisible(true)}>
                 <Text style={styles.addButtonText}>Add Instrument</Text>
             </TouchableOpacity>
 
-            {/* Modal for more information */}
             {selectedInstrument && (
                 <Modal
                     animationType="slide"
@@ -151,7 +148,11 @@ const MainPage = () => {
                             <Text style={styles.modalDescription}>{selectedInstrument.longDescription}</Text>
                             <Text style={styles.modalDetails}>Uses: {selectedInstrument.uses}</Text>
                             <Text style={styles.modalDetails}>Price: ${selectedInstrument.price}</Text>
-                            {/* Back Button to close the modal */}
+
+                            <TouchableOpacity onPress={handleSeeMoreInformation} style={styles.seeMoreButton}>
+                                <Text style={styles.seeMoreButtonText}>See More Informations</Text>
+                            </TouchableOpacity>
+
                             <TouchableOpacity onPress={closeModal} style={styles.backButton}>
                                 <Text style={styles.backButtonText}>Back</Text>
                             </TouchableOpacity>
@@ -160,7 +161,6 @@ const MainPage = () => {
                 </Modal>
             )}
 
-            {/* Modal for adding a new instrument */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -170,44 +170,17 @@ const MainPage = () => {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Add New Instrument</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Title"
-                            value={newInstrument.title}
-                            onChangeText={(text) => setNewInstrument({ ...newInstrument, title: text })}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Description"
-                            value={newInstrument.description}
-                            onChangeText={(text) => setNewInstrument({ ...newInstrument, description: text })}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Image Source"
-                            value={newInstrument.imageSource}
-                            onChangeText={(text) => setNewInstrument({ ...newInstrument, imageSource: text })}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Uses"
-                            value={newInstrument.uses}
-                            onChangeText={(text) => setNewInstrument({ ...newInstrument, uses: text })}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Price"
-                            value={newInstrument.price}
-                            onChangeText={(text) => setNewInstrument({ ...newInstrument, price: text })}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Long Description"
-                            value={newInstrument.longDescription}
-                            onChangeText={(text) => setNewInstrument({ ...newInstrument, longDescription: text })}
-                        />
 
-                        {/* Add and Cancel Buttons */}
+                        {['title', 'description', 'imageSource', 'uses', 'price', 'longDescription'].map((field) => (
+                            <TextInput
+                                key={field}
+                                style={styles.input}
+                                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                value={newInstrument[field]}
+                                onChangeText={(text) => setNewInstrument({ ...newInstrument, [field]: text })}
+                            />
+                        ))}
+
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity style={styles.addButton} onPress={handleAddInstrument}>
                                 <Text style={styles.addButtonText}>Add</Text>
@@ -251,27 +224,6 @@ const styles = StyleSheet.create({
         color: '#888',
         marginTop: 20,
     },
-    instrumentCard: {
-        backgroundColor: '#fff',
-        padding: 15,
-        marginVertical: 10,
-        borderRadius: 8,
-        elevation: 2,
-    },
-    instrumentTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    instrumentDescription: {
-        fontSize: 16,
-        color: '#555',
-        marginTop: 5,
-    },
-    deleteIcon: {
-        marginTop: 10,
-        alignSelf: 'flex-end',
-    },
     addButton: {
         backgroundColor: '#2E7D32',
         paddingVertical: 15,
@@ -286,22 +238,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
     },
-    deleteIcon: {
-        position: 'absolute',
-        top: 10, // Adjust as needed to align with the top of the card
-        right: 10, // Align with the right edge of the card
-        width: 24,  // Set the width of the delete button to match the icon size
-        height: 24,  // Set the height to match the icon size
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'transparent',  // Remove any background to avoid overlay
-    },
-
-    deleteButton: {
-        padding: 5,  // Ensure there's no extra space around the icon
-        backgroundColor: 'transparent',  // Make the background transparent so it only shows the icon
-    },
-
     backButton: {
         marginTop: 20,
         backgroundColor: '#e0e0e0',
@@ -372,6 +308,20 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: '100%',
         marginTop: 20,
+    },
+    seeMoreButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginTop: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    seeMoreButtonText: {
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });
 
